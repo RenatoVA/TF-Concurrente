@@ -7,7 +7,7 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"github.com/remii/tf-concurrente/internal/loader"
+	"tf-concurrente/internal/loader"
 )
 
 // TrainOptions configura el entrenamiento.

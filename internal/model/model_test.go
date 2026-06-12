@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/remii/tf-concurrente/internal/loader"
+	"tf-concurrente/internal/loader"
 )
 
 // TestGradient verifica el cálculo del gradiente contra un resultado manual.

@@ -6,7 +6,7 @@ import (
 	"math"
 	"os"
 
-	"github.com/remii/tf-concurrente/internal/loader"
+	"tf-concurrente/internal/loader"
 )
 
 // LinearModel representa el modelo entrenado.

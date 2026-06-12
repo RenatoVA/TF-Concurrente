@@ -1,5 +1,4 @@
 data/*.csv
 data/*.json
-taxi
-cmd/taxi/taxi
+/taxi
 *.test

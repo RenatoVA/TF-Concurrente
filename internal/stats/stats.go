@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/remii/tf-concurrente/internal/loader"
+	"tf-concurrente/internal/loader"
 )
 
 // StatsResult agrupa todos los agregados calculados sobre el dataset.

@@ -1,3 +1,3 @@
-module github.com/remii/tf-concurrente
+module tf-concurrente
 
 go 1.22

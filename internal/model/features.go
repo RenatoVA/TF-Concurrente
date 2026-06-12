@@ -4,7 +4,7 @@ package model
 import (
 	"math"
 
-	"github.com/remii/tf-concurrente/internal/loader"
+	"tf-concurrente/internal/loader"
 )
 
 const NumFeatures = 8 // sin incluir el bias; el vector de pesos tiene largo 9
