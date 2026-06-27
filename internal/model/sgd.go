@@ -314,14 +314,59 @@ type partition struct {
 }
 
 // makePartitions divide n elementos en W particiones contiguas.
-// El último worker absorbe el remanente de la división entera.
 func makePartitions(n, W int) []partition {
-	parts := make([]partition, W)
+	exported := MakePartitions(n, W)
+	parts := make([]partition, len(exported))
+	for i, p := range exported {
+		parts[i] = partition{start: p.Start, end: p.End}
+	}
+	return parts
+}
+
+// Partition defines the range [Start, End) for a cluster worker in matrix X.
+// Exported for use by the distributed Coordinator in internal/cluster.
+type Partition struct {
+	Start, End int
+}
+
+// MakePartitions divides n elements into W contiguous partitions.
+// The last partition absorbs the integer remainder of n/W.
+func MakePartitions(n, W int) []Partition {
+	parts := make([]Partition, W)
 	size := n / W
 	for i := 0; i < W; i++ {
-		parts[i].start = i * size
-		parts[i].end = (i + 1) * size
+		parts[i].Start = i * size
+		parts[i].End = (i + 1) * size
 	}
-	parts[W-1].end = n
+	parts[W-1].End = n
 	return parts
+}
+
+// AccumulateGradient sums gradients over all rows in (X, y) given theta.
+// Processes sequentially in mini-batches of 1024 for memory efficiency,
+// reusing computeGrad to guarantee per-example math identical to local SGD.
+// Returns gradSum (not averaged) and n (number of examples).
+func AccumulateGradient(X [][]float64, y, theta []float64) (gradSum []float64, n int) {
+	n = len(X)
+	gradSum = make([]float64, len(theta))
+	if n == 0 {
+		return
+	}
+	const batchSz = 1024
+	for start := 0; start < n; start += batchSz {
+		end := start + batchSz
+		if end > n {
+			end = n
+		}
+		batchIdx := make([]int, end-start)
+		for k := range batchIdx {
+			batchIdx[k] = start + k
+		}
+		batchGrad := computeGrad(X, y, theta, batchIdx)
+		sz := float64(end - start)
+		for j := range gradSum {
+			gradSum[j] += batchGrad[j] * sz
+		}
+	}
+	return
 }
