@@ -1,0 +1,6 @@
+data/*.csv
+data/*.json
+/taxi
+*.test
+.git
+RESUMEN.md

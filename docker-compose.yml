@@ -1,0 +1,70 @@
+services:
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - taxi-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - taxi-net
+    restart: unless-stopped
+
+  node1:
+    build: .
+    command: ["node", "--listen", ":9100"]
+    networks:
+      - taxi-net
+    restart: unless-stopped
+    environment:
+      - NODE_LISTEN=:9100
+
+  node2:
+    build: .
+    command: ["node", "--listen", ":9100"]
+    networks:
+      - taxi-net
+    restart: unless-stopped
+    environment:
+      - NODE_LISTEN=:9100
+
+  node3:
+    build: .
+    command: ["node", "--listen", ":9100"]
+    networks:
+      - taxi-net
+    restart: unless-stopped
+    environment:
+      - NODE_LISTEN=:9100
+
+  api:
+    build: .
+    command: ["api"]
+    ports:
+      - "8080:8080"
+    networks:
+      - taxi-net
+    depends_on:
+      - mongo
+      - redis
+      - node1
+      - node2
+      - node3
+    volumes:
+      - ./data:/data:ro
+    environment:
+      - API_ADDR=:8080
+      - MONGO_URI=mongodb://mongo:27017
+      - REDIS_ADDR=redis:6379
+      - NODES=node1:9100,node2:9100,node3:9100
+    restart: unless-stopped
+
+networks:
+  taxi-net:
+    driver: bridge
+
+volumes:
+  mongo-data:
