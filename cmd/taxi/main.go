@@ -84,6 +84,7 @@ func runTrain(args []string) {
 	batch := fs.Int("batch", 1024, "tamaño de mini-batch")
 	seed := fs.Int64("seed", 42, "semilla para reproducibilidad")
 	output := fs.String("output", "data/model.json", "ruta del modelo guardado")
+	lossCSV := fs.String("loss-csv", "data/loss_curve.csv", "ruta del CSV con la curva de loss")
 	limit := fs.Int64("limit", 0, "límite de filas (0=todas)")
 	if err := fs.Parse(args); err != nil {
 		os.Exit(1)
@@ -118,6 +119,11 @@ func runTrain(args []string) {
 		log.Fatalf("Error guardando modelo: %v", err)
 	}
 	log.Printf("Modelo guardado en: %s", *output)
+
+	if err := m.SaveLossCSV(*lossCSV); err != nil {
+		log.Fatalf("Error guardando loss CSV: %v", err)
+	}
+	log.Printf("Curva de loss guardada en: %s", *lossCSV)
 }
 
 // runBenchmark mide tiempos de carga y entrenamiento con distintos números de workers.

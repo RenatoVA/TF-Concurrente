@@ -139,6 +139,7 @@ func Train(trips []loader.Trip, opts TrainOptions) (*LinearModel, error) {
 	go runAggregator(gradCh, epochResultCh, theta, opts.LearningRate, W, opts.Epochs)
 
 	// Loop de coordinación: por cada época, broadcast θ y esperar resultado
+	lossHistory := make([]float64, 0, opts.Epochs)
 	prevMSE := math.MaxFloat64
 	for epoch := 1; epoch <= opts.Epochs; epoch++ {
 		epochStart := time.Now()
@@ -155,6 +156,7 @@ func Train(trips []loader.Trip, opts TrainOptions) (*LinearModel, error) {
 		theta = <-epochResultCh
 
 		mse := computeMSE(X, y, theta)
+		lossHistory = append(lossHistory, mse)
 		elapsed := time.Since(epochStart).Round(time.Millisecond)
 		log.Printf("Época %3d/%d | MSE train: %8.4f | tiempo: %v", epoch, opts.Epochs, mse, elapsed)
 
@@ -179,6 +181,7 @@ func Train(trips []loader.Trip, opts TrainOptions) (*LinearModel, error) {
 		LearningRate: opts.LearningRate,
 		BatchSize:    opts.BatchSize,
 		Workers:      W,
+		LossHistory:  lossHistory,
 	}
 
 	trainMetrics := m.Evaluate(trainTrips)

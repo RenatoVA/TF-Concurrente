@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -13,21 +14,22 @@ import (
 // La interfaz está diseñada para ser consumida directamente por la API REST
 // del entregable 2 sin modificaciones.
 type LinearModel struct {
-	Weights      []float64        `json:"weights"`        // len = NumFeatures+1 (incluye bias)
+	Weights      []float64            `json:"weights"`
 	Means        [NumFeatures]float64 `json:"means"`
 	Stds         [NumFeatures]float64 `json:"stds"`
-	FeatureNames []string         `json:"feature_names"`
+	FeatureNames []string             `json:"feature_names"`
 	// Metadatos de entrenamiento
-	Epochs       int     `json:"epochs"`
-	LearningRate float64 `json:"learning_rate"`
-	BatchSize    int     `json:"batch_size"`
-	Workers      int     `json:"workers"`
-	TrainMAE     float64 `json:"train_mae"`
-	TrainRMSE    float64 `json:"train_rmse"`
-	TrainR2      float64 `json:"train_r2"`
-	TestMAE      float64 `json:"test_mae"`
-	TestRMSE     float64 `json:"test_rmse"`
-	TestR2       float64 `json:"test_r2"`
+	Epochs       int       `json:"epochs"`
+	LearningRate float64   `json:"learning_rate"`
+	BatchSize    int       `json:"batch_size"`
+	Workers      int       `json:"workers"`
+	LossHistory  []float64 `json:"loss_history"` // MSE por época
+	TrainMAE     float64   `json:"train_mae"`
+	TrainRMSE    float64   `json:"train_rmse"`
+	TrainR2      float64   `json:"train_r2"`
+	TestMAE      float64   `json:"test_mae"`
+	TestRMSE     float64   `json:"test_rmse"`
+	TestR2       float64   `json:"test_r2"`
 }
 
 // Predict predice la duración en minutos para un vector de features ya estandarizado.
@@ -188,6 +190,21 @@ func BaselineMetrics(train, test []loader.Trip) (meanBaseline, speedBaseline Met
 		R2:   r2(sumSqSpeed),
 	}
 	return
+}
+
+// SaveLossCSV exporta la curva de loss (MSE por época) a un archivo CSV.
+func (m *LinearModel) SaveLossCSV(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("crear loss CSV: %w", err)
+	}
+	defer f.Close()
+	w := bufio.NewWriter(f)
+	fmt.Fprintln(w, "epoca,mse_train")
+	for i, mse := range m.LossHistory {
+		fmt.Fprintf(w, "%d,%.6f\n", i+1, mse)
+	}
+	return w.Flush()
 }
 
 // PrintComparativeTable imprime la tabla comparativa de métricas.
